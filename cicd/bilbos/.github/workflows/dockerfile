@@ -1,0 +1,37 @@
+# Stage 1: Build dan test
+FROM node:20 AS build
+
+# Set workdir
+WORKDIR /app
+
+# Copy package.json dulu
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy semua source code
+COPY . .
+
+# Build project (misalnya React / Vue / Next.js / Node API dengan build step)
+RUN npm run build
+
+# Jalankan test
+RUN npm test
+
+
+# Stage 2: Image untuk production
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Hanya ambil file penting dari stage build
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+
+# Expose port (ubah sesuai aplikasi)
+EXPOSE 3000
+
+# Jalankan aplikasi
+CMD ["npm", "start"]
